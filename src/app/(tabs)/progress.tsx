@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { BarChart, type BarChartDatum } from '@/components/charts/bar-chart';
 import { LineChart, type LineChartPoint } from '@/components/charts/line-chart';
@@ -13,13 +14,13 @@ import { ThemedView } from '@/components/themed-view';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Icon } from '@/components/ui/icon';
+import { Icon, type IconName } from '@/components/ui/icon';
 import { ListRow } from '@/components/ui/list-row';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { BottomTabInset, Spacing } from '@/constants/theme';
 import { exercisesRepo, progressRepo, settingsRepo, workoutsRepo } from '@/db/repositories';
 import type { ExerciseHistoryPoint } from '@/db/repositories/progress-repo';
-import type { PersonalRecord } from '@/db/schema';
+import type { PersonalRecord, Workout } from '@/db/schema';
 import { useTheme } from '@/hooks/use-theme';
 import { formatWeight, type WeightUnit } from '@/lib/units';
 
@@ -123,6 +124,39 @@ function aggregateVolume(
     }));
 }
 
+// Muscle group colors for visualization
+const MUSCLE_COLORS: Record<string, string> = {
+  chest: '#FF6B6B',
+  back: '#4ECDC4',
+  shoulders: '#45B7D1',
+  biceps: '#96CEB4',
+  triceps: '#DDA0DD',
+  abs: '#F7DC6F',
+  quads: '#FF8C42',
+  hamstrings: '#98D8C8',
+  glutes: '#C9B1FF',
+  calves: '#FFB6C1',
+  forearms: '#87CEEB',
+  core: '#F7DC6F',
+  legs: '#45B7D1',
+  arms: '#96CEB4',
+};
+
+interface WorkoutInsight {
+  icon: IconName;
+  title: string;
+  value: string;
+  color: string;
+  subtitle?: string;
+}
+
+interface MuscleGroupData {
+  name: string;
+  sets: number;
+  color: string;
+  percentage: number;
+}
+
 export default function ProgressScreen() {
   const theme = useTheme();
   const router = useRouter();
@@ -138,6 +172,8 @@ export default function ProgressScreen() {
   const [history, setHistory] = useState<ExerciseHistoryPoint[]>([]);
   const [prs, setPrs] = useState<PersonalRecord[]>([]);
   const [workoutTimestamps, setWorkoutTimestamps] = useState<number[]>([]);
+  const [allWorkouts, setAllWorkouts] = useState<Workout[]>([]);
+  const [muscleGroupData, setMuscleGroupData] = useState<MuscleGroupData[]>([]);
 
   const { start, granularity } = useMemo(() => rangeConfig(range), [range]);
 
@@ -156,15 +192,53 @@ export default function ProgressScreen() {
   }, [exerciseId, start]);
 
   const loadConsistency = useCallback(() => {
-    setWorkoutTimestamps(workoutsRepo.list().map((w) => w.startedAt));
+    const workouts = workoutsRepo.list();
+    setAllWorkouts(workouts);
+    setWorkoutTimestamps(workouts.map((w) => w.startedAt));
   }, []);
+
+  // Calculate muscle group distribution
+  const loadMuscleGroups = useCallback(() => {
+    const workouts = workoutsRepo.list();
+    const muscleSetCount: Record<string, number> = {};
+    let totalSets = 0;
+
+    workouts.forEach(workout => {
+      const detail = workoutsRepo.getById(workout.id);
+      if (detail) {
+        detail.exercises.forEach(ex => {
+          const exercise = exercisesRepo.getById(ex.exerciseId);
+          if (exercise) {
+            const targetMuscle = exercise.targetMuscles?.[0]?.toLowerCase() ?? 
+                                exercise.bodyParts?.[0]?.toLowerCase() ?? 'other';
+            const completedSets = ex.sets.filter(s => s.completed).length;
+            muscleSetCount[targetMuscle] = (muscleSetCount[targetMuscle] ?? 0) + completedSets;
+            totalSets += completedSets;
+          }
+        });
+      }
+    });
+
+    const data: MuscleGroupData[] = Object.entries(muscleSetCount)
+      .map(([name, sets]) => ({
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        sets,
+        color: MUSCLE_COLORS[name.toLowerCase()] ?? theme.chart[0],
+        percentage: totalSets > 0 ? Math.round((sets / totalSets) * 100) : 0,
+      }))
+      .sort((a, b) => b.sets - a.sets)
+      .slice(0, 8);
+
+    setMuscleGroupData(data);
+  }, [theme.chart]);
 
   useFocusEffect(
     useCallback(() => {
       loadVolume();
       loadExercise();
       loadConsistency();
-    }, [loadVolume, loadExercise, loadConsistency])
+      loadMuscleGroups();
+    }, [loadVolume, loadExercise, loadConsistency, loadMuscleGroups])
   );
 
   const handleSelectExercise = useCallback((id: string) => {
@@ -190,6 +264,58 @@ export default function ProgressScreen() {
         .map((p) => ({ x: p.at, y: metricValue(p, metric) })),
     [history, metric]
   );
+
+  // Calculate workout insights
+  const insights = useMemo<WorkoutInsight[]>(() => {
+    if (allWorkouts.length === 0) return [];
+
+    const rangeWorkouts = start 
+      ? allWorkouts.filter(w => w.startedAt >= start)
+      : allWorkouts;
+
+    // Total workouts in range
+    const totalWorkouts = rangeWorkouts.length;
+
+    // Average duration
+    const avgDuration = rangeWorkouts.length > 0
+      ? Math.round(rangeWorkouts.reduce((sum, w) => sum + (w.durationSec ?? 0), 0) / rangeWorkouts.length / 60)
+      : 0;
+
+    // Average volume per workout
+    const avgVolume = rangeWorkouts.length > 0
+      ? Math.round(rangeWorkouts.reduce((sum, w) => sum + (w.totalVolume ?? 0), 0) / rangeWorkouts.length)
+      : 0;
+
+    // Workouts per week
+    const days = start ? (Date.now() - start) / DAY_MS : 
+      rangeWorkouts.length > 0 ? (Date.now() - rangeWorkouts[rangeWorkouts.length - 1].startedAt) / DAY_MS : 0;
+    const weeks = Math.max(1, days / 7);
+    const workoutsPerWeek = Math.round((totalWorkouts / weeks) * 10) / 10;
+
+    return [
+      {
+        icon: 'train' as IconName,
+        title: 'Workouts',
+        value: String(totalWorkouts),
+        color: theme.accent,
+        subtitle: `${workoutsPerWeek}/week avg`,
+      },
+      {
+        icon: 'timer' as IconName,
+        title: 'Avg Duration',
+        value: `${avgDuration}`,
+        color: theme.chart[1],
+        subtitle: 'minutes',
+      },
+      {
+        icon: 'progress' as IconName,
+        title: 'Avg Volume',
+        value: formatWeight(avgVolume, unit, { withUnit: false }),
+        color: theme.chart[2],
+        subtitle: unit,
+      },
+    ];
+  }, [allWorkouts, start, unit, theme]);
 
   const volumeSummary =
     volumeBars.length > 0
@@ -218,7 +344,7 @@ export default function ProgressScreen() {
           ]}
           showsVerticalScrollIndicator={false}>
           <View style={styles.headerRow}>
-            <ThemedText type="smallBold">Progress</ThemedText>
+            <ThemedText type="subtitle">Progress</ThemedText>
             <Button
               title="Body metrics"
               variant="secondary"
@@ -235,6 +361,30 @@ export default function ProgressScreen() {
             onChange={setRange}
             style={styles.rangeControl}
           />
+
+          {/* Quick Insights */}
+          {insights.length > 0 && (
+            <Animated.View entering={FadeIn.duration(300)} style={styles.insightsRow}>
+              {insights.map((insight, index) => (
+                <InsightCard key={index} insight={insight} />
+              ))}
+            </Animated.View>
+          )}
+
+          {/* Muscle Group Balance */}
+          {muscleGroupData.length > 0 && (
+            <Card style={styles.card}>
+              <View style={styles.cardHeader}>
+                <ThemedText type="smallBold">Muscle Group Balance</ThemedText>
+                <Icon name="exercises" size={16} color={theme.textSecondary} />
+              </View>
+              <View style={styles.muscleGroupChart}>
+                {muscleGroupData.map((muscle, index) => (
+                  <MuscleGroupBar key={index} muscle={muscle} />
+                ))}
+              </View>
+            </Card>
+          )}
 
           <Card style={styles.card}>
             <View style={styles.cardHeader}>
@@ -308,8 +458,15 @@ export default function ProgressScreen() {
 
           <Card style={styles.card} padding={0}>
             <View style={[styles.cardHeader, styles.prHeader]}>
-              <ThemedText type="smallBold">Personal records</ThemedText>
-              <Icon name="trophy" size={16} color={theme.pr} />
+              <View style={styles.prTitleRow}>
+                <ThemedText type="smallBold">Personal Records</ThemedText>
+                <View style={[styles.prBadge, { backgroundColor: theme.pr + '20' }]}>
+                  <Icon name="trophy" size={14} color={theme.pr} />
+                  <ThemedText type="small" style={{ color: theme.pr }}>
+                    {prs.length} PRs
+                  </ThemedText>
+                </View>
+              </View>
             </View>
             {!exerciseId ? (
               <View style={styles.prEmpty}>
@@ -324,7 +481,7 @@ export default function ProgressScreen() {
                 </ThemedText>
               </View>
             ) : (
-              prs.map((pr, i) => (
+              prs.slice(0, 5).map((pr, i) => (
                 <ListRow
                   key={pr.id}
                   title={PR_LABELS[pr.metric]}
@@ -333,6 +490,11 @@ export default function ProgressScreen() {
                     month: 'short',
                     day: 'numeric',
                   })}
+                  leading={
+                    <View style={[styles.prIcon, { backgroundColor: theme.pr + '20' }]}>
+                      <Icon name="trophy" size={16} color={theme.pr} />
+                    </View>
+                  }
                   trailing={
                     <ThemedText type="smallBold" themeColor="pr">
                       {formatWeight(pr.value, unit)}
@@ -361,5 +523,61 @@ export default function ProgressScreen() {
         onSelect={handleSelectExercise}
       />
     </ThemedView>
+  );
+}
+
+function InsightCard({ insight }: { insight: WorkoutInsight }) {
+  const theme = useTheme();
+  
+  return (
+    <Card style={styles.insightCard}>
+      <View style={[styles.insightIcon, { backgroundColor: insight.color + '20' }]}>
+        <Icon name={insight.icon} size={16} color={insight.color} />
+      </View>
+      <ThemedText type="small" themeColor="textSecondary">
+        {insight.title}
+      </ThemedText>
+      <View style={styles.insightValueRow}>
+        <ThemedText type="subtitle" style={styles.insightValue}>
+          {insight.value}
+        </ThemedText>
+        {insight.subtitle && (
+          <ThemedText type="small" themeColor="textSecondary">
+            {insight.subtitle}
+          </ThemedText>
+        )}
+      </View>
+    </Card>
+  );
+}
+
+function MuscleGroupBar({ muscle }: { muscle: MuscleGroupData }) {
+  const theme = useTheme();
+  
+  return (
+    <View style={styles.muscleGroupRow}>
+      <View style={styles.muscleGroupLabel}>
+        <ThemedText type="small" numberOfLines={1}>
+          {muscle.name}
+        </ThemedText>
+        <ThemedText type="small" themeColor="textSecondary">
+          {muscle.sets} sets
+        </ThemedText>
+      </View>
+      <View style={styles.muscleGroupBarContainer}>
+        <View 
+          style={[
+            styles.muscleGroupBarFill,
+            { 
+              backgroundColor: muscle.color,
+              width: `${Math.max(5, muscle.percentage)}%`,
+            }
+          ]} 
+        />
+      </View>
+      <ThemedText type="small" themeColor="textSecondary" style={styles.muscleGroupPercent}>
+        {muscle.percentage}%
+      </ThemedText>
+    </View>
   );
 }

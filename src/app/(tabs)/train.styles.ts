@@ -12,43 +12,108 @@ export const styles = StyleSheet.create({
     paddingBottom: Spacing.three,
   },
   content: {
-    paddingHorizontal: Spacing.three,
     paddingBottom: BottomTabInset + Spacing.four,
     gap: Spacing.four,
   },
   contentEmpty: {
     flexGrow: 1,
   },
-  actions: {
+  section: {
     gap: Spacing.two,
   },
-  list: {
-    gap: Spacing.two,
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.three,
   },
   sectionLabel: {
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: Spacing.one,
   },
-  emptyWrap: {
-    flex: 1,
-    minHeight: 280,
+  quickActions: {
+    paddingHorizontal: Spacing.three,
+    gap: Spacing.two,
   },
-  card: {
+  templatesRow: {
+    paddingHorizontal: Spacing.three,
+    gap: Spacing.two,
+  },
+  templateCard: {
+    width: 100,
+    padding: Spacing.three,
+    borderRadius: Spacing.three,
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  templateIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  templateName: {
+    textAlign: 'center',
+  },
+  templateMuscles: {
+    textAlign: 'center',
+    fontSize: 10,
+  },
+  routinesList: {
+    paddingHorizontal: Spacing.three,
+    gap: Spacing.two,
+  },
+  routineCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.three,
     padding: Spacing.three,
     borderRadius: Spacing.three,
   },
-  pressed: {
-    opacity: 0.7,
-  },
-  cardBody: {
+  routineCardContent: {
     flex: 1,
+    gap: Spacing.one,
+  },
+  routineCardHeader: {
     gap: Spacing.half,
   },
-  cardTitle: {
+  routineCardTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  routineCardTitle: {
     fontWeight: '600',
+    flex: 1,
+  },
+  lastUsedBadge: {
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.half,
+    borderRadius: Spacing.one,
+  },
+  lastUsedText: {
+    fontSize: 10,
+  },
+  exercisePreview: {
+    marginTop: Spacing.half,
+    fontSize: 12,
+    opacity: 0.7,
+  },
+  routineNote: {
+    fontStyle: 'italic',
+    opacity: 0.6,
+  },
+  routineCardActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  emptyWrap: {
+    flex: 1,
+    minHeight: 200,
+    paddingHorizontal: Spacing.three,
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });

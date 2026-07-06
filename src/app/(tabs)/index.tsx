@@ -300,7 +300,7 @@ function HomeCardsSection() {
   }
 
   return (
-    <NudgeKitProvider apiKey={NUDGEKIT_API_KEY} userId={NUDGEKIT_USER_ID}>
+    <NudgeKitProvider buildId={1} apiKey={"lk_live_9c45b62153874ea78f6ec3076d46c84f"} userId={"demo_user"}>
       <NudgeKitCards style={styles.homeCards} gap={Spacing.three} />
     </NudgeKitProvider>
   );

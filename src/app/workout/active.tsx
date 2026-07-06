@@ -11,8 +11,9 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { FadeIn, FadeOut, Layout } from 'react-native-reanimated';
 
 import { ExercisePickerSheet } from '@/components/exercises/exercise-picker-sheet';
 import { RestTimerBar } from '@/components/workout/rest-timer-bar';
@@ -35,10 +36,16 @@ import { styles } from './active.styles';
 
 const DEFAULT_REST_SEC = 90;
 
-function haptic(kind: 'light' | 'success') {
+// Preset weight increments
+const WEIGHT_PRESETS = [2.5, 5, 10, 20, 25];
+const REP_PRESETS = [5, 8, 10, 12, 15];
+
+function haptic(kind: 'light' | 'success' | 'medium') {
   if (Platform.OS === 'web') return;
   if (kind === 'success') {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+  } else if (kind === 'medium') {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
   } else {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
   }
@@ -160,6 +167,22 @@ export default function ActiveWorkoutScreen() {
     ]);
   }, [finish, goToTrain, stopTimer]);
 
+  // Calculate workout stats
+  const workoutStats = useMemo(() => {
+    if (!active) return { totalSets: 0, totalVolume: 0 };
+    let totalSets = 0;
+    let totalVolume = 0;
+    active.exercises.forEach(ex => {
+      ex.sets.forEach(set => {
+        if (set.completed) {
+          totalSets++;
+          totalVolume += (set.weight ?? 0) * (set.reps ?? 0);
+        }
+      });
+    });
+    return { totalSets, totalVolume };
+  }, [active]);
+
   if (!active && !loading) {
     return (
       <ThemedView style={styles.fill}>
@@ -205,8 +228,28 @@ export default function ActiveWorkoutScreen() {
             }
           />
 
+          {/* Workout Stats Bar */}
+          <View style={[styles.statsBar, { backgroundColor: theme.backgroundElement }]}>
+            <View style={styles.statItem}>
+              <ThemedText type="small" themeColor="textSecondary">Sets</ThemedText>
+              <ThemedText type="smallBold">{workoutStats.totalSets}</ThemedText>
+            </View>
+            <View style={[styles.statDivider, { backgroundColor: theme.backgroundSelected }]} />
+            <View style={styles.statItem}>
+              <ThemedText type="small" themeColor="textSecondary">Volume</ThemedText>
+              <ThemedText type="smallBold">{formatWeight(workoutStats.totalVolume, unit)}</ThemedText>
+            </View>
+            <View style={[styles.statDivider, { backgroundColor: theme.backgroundSelected }]} />
+            <View style={styles.statItem}>
+              <ThemedText type="small" themeColor="textSecondary">Exercises</ThemedText>
+              <ThemedText type="smallBold">{active?.exercises.length ?? 0}</ThemedText>
+            </View>
+          </View>
+
           {prBanner ? (
-            <View
+            <Animated.View
+              entering={FadeIn.duration(200)}
+              exiting={FadeOut.duration(200)}
               style={[styles.prBanner, { backgroundColor: theme.pr }]}
               accessibilityRole="alert"
               accessibilityLabel={`New personal record. ${prBanner}`}>
@@ -214,7 +257,7 @@ export default function ActiveWorkoutScreen() {
               <ThemedText type="smallBold" style={styles.prBannerText} numberOfLines={2}>
                 New PR! {prBanner}
               </ThemedText>
-            </View>
+            </Animated.View>
           ) : null}
 
           <KeyboardAvoidingView
@@ -288,13 +331,27 @@ function ExerciseBlock({
 
   const [reps, setReps] = useState('');
   const [weight, setWeight] = useState('');
+  const [showPresets, setShowPresets] = useState(false);
 
-  const previous = useMemo(() => {
+  // Get previous workout data for suggestions
+  const { previous, suggestedWeight, suggestedReps } = useMemo(() => {
     const history = progressRepo.exerciseHistory(detail.exerciseId);
     const last = history[0];
-    if (!last || last.topSetKg <= 0) return null;
-    return `Last: ${formatWeight(last.topSetKg, unit)} top set`;
+    if (!last || last.topSetKg <= 0) return { previous: null, suggestedWeight: null, suggestedReps: null };
+    // Estimate reps from volume: volume = weight * reps, so reps ≈ volume / weight
+    const estimatedReps = last.topSetKg > 0 ? Math.round(last.volume / last.topSetKg) : null;
+    return {
+      previous: `Last: ${formatWeight(last.topSetKg, unit)}`,
+      suggestedWeight: last.topSetKg,
+      suggestedReps: estimatedReps && estimatedReps > 0 ? Math.min(estimatedReps, 20) : 8,
+    };
   }, [detail.exerciseId, unit]);
+
+  // Get the last set in this session for quick repeat
+  const lastSet = useMemo(() => {
+    if (detail.sets.length === 0) return null;
+    return detail.sets[detail.sets.length - 1];
+  }, [detail.sets]);
 
   const handleLog = useCallback(() => {
     const parsedReps = reps.trim() === '' ? null : Number(reps);
@@ -314,29 +371,58 @@ function ExerciseBlock({
     setWeight('');
   }, [reps, weight, unit, logSet, detail, onLogged, onSetCompleted]);
 
+  const handleRepeatLast = useCallback(() => {
+    if (!lastSet) return;
+    haptic('light');
+    const prs = logSet(detail.id, { reps: lastSet.reps, weight: lastSet.weight });
+    onLogged(prs);
+    const restSeconds = (detail as { restSeconds?: number | null }).restSeconds ?? null;
+    onSetCompleted(restSeconds);
+  }, [lastSet, logSet, detail, onLogged, onSetCompleted]);
+
+  const handleUseSuggested = useCallback(() => {
+    if (suggestedWeight) setWeight(formatWeight(suggestedWeight, unit, { withUnit: false }));
+    if (suggestedReps) setReps(String(suggestedReps));
+    haptic('light');
+  }, [suggestedWeight, suggestedReps, unit]);
+
+  const handlePresetWeight = useCallback((preset: number) => {
+    const current = weight.trim() === '' ? 0 : Number(weight);
+    setWeight(String(current + preset));
+    haptic('light');
+  }, [weight]);
+
+  const handlePresetReps = useCallback((preset: number) => {
+    setReps(String(preset));
+    haptic('light');
+  }, []);
+
   const restSeconds = (detail as { restSeconds?: number | null }).restSeconds ?? null;
 
   const handleToggle = useCallback(
     (setItem: WorkoutSet) => {
       const nextCompleted = !setItem.completed;
       updateSet(setItem.id, { completed: nextCompleted });
-      if (nextCompleted) onSetCompleted(restSeconds);
+      if (nextCompleted) {
+        haptic('medium');
+        onSetCompleted(restSeconds);
+      }
     },
     [updateSet, onSetCompleted, restSeconds]
   );
 
   const handleRemove = useCallback(
     (setItem: WorkoutSet) => {
-      Alert.alert('Remove set', `Remove set ${setItem.setNumber}?`, [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Remove', style: 'destructive', onPress: () => removeSet(setItem.id) },
-      ]);
+      haptic('medium');
+      removeSet(setItem.id);
     },
     [removeSet]
   );
 
   return (
-    <View style={[styles.block, { backgroundColor: theme.backgroundElement }]}>
+    <Animated.View 
+      layout={Layout.springify()}
+      style={[styles.block, { backgroundColor: theme.backgroundElement }]}>
       <View style={styles.blockHeader}>
         <View style={[styles.thumb, { backgroundColor: theme.backgroundSelected }]}>
           {detail.exercise.gifUrl ? (
@@ -358,9 +444,11 @@ function ExerciseBlock({
             {detail.exercise.name}
           </ThemedText>
           {previous ? (
-            <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
-              {previous}
-            </ThemedText>
+            <Pressable onPress={handleUseSuggested} accessibilityLabel="Use suggested values">
+              <ThemedText type="small" themeColor="accent" numberOfLines={1}>
+                {previous} (tap to use)
+              </ThemedText>
+            </Pressable>
           ) : null}
         </View>
       </View>
@@ -368,7 +456,7 @@ function ExerciseBlock({
       {detail.sets.length > 0 ? (
         <View style={styles.setList}>
           {detail.sets.map((setItem) => (
-            <SetRow
+            <SwipeableSetRow
               key={setItem.id}
               set={setItem}
               unit={unit}
@@ -378,6 +466,65 @@ function ExerciseBlock({
           ))}
         </View>
       ) : null}
+
+      {/* Quick action buttons */}
+      <View style={styles.quickActions}>
+        {lastSet && (
+          <Pressable 
+            onPress={handleRepeatLast}
+            style={[styles.quickActionButton, { backgroundColor: theme.backgroundSelected }]}
+            accessibilityLabel="Repeat last set">
+            <Icon name="timer" size={14} color={theme.textSecondary} />
+            <ThemedText type="small" themeColor="textSecondary">
+              Repeat {lastSet.reps}×{formatWeight(lastSet.weight ?? 0, unit, { withUnit: false })}
+            </ThemedText>
+          </Pressable>
+        )}
+        <Pressable 
+          onPress={() => setShowPresets(!showPresets)}
+          style={[styles.quickActionButton, { backgroundColor: theme.backgroundSelected }]}
+          accessibilityLabel="Toggle preset buttons">
+          <Icon name="plus" size={14} color={theme.textSecondary} />
+          <ThemedText type="small" themeColor="textSecondary">
+            Presets
+          </ThemedText>
+        </Pressable>
+      </View>
+
+      {/* Preset buttons */}
+      {showPresets && (
+        <Animated.View 
+          entering={FadeIn.duration(150)}
+          exiting={FadeOut.duration(150)}
+          style={styles.presetsContainer}>
+          <View style={styles.presetRow}>
+            <ThemedText type="small" themeColor="textSecondary" style={styles.presetLabel}>
+              + Weight:
+            </ThemedText>
+            {WEIGHT_PRESETS.map((preset) => (
+              <Pressable
+                key={preset}
+                onPress={() => handlePresetWeight(preset)}
+                style={[styles.presetChip, { backgroundColor: theme.backgroundSelected }]}>
+                <ThemedText type="small">+{preset}</ThemedText>
+              </Pressable>
+            ))}
+          </View>
+          <View style={styles.presetRow}>
+            <ThemedText type="small" themeColor="textSecondary" style={styles.presetLabel}>
+              Reps:
+            </ThemedText>
+            {REP_PRESETS.map((preset) => (
+              <Pressable
+                key={preset}
+                onPress={() => handlePresetReps(preset)}
+                style={[styles.presetChip, { backgroundColor: theme.backgroundSelected }]}>
+                <ThemedText type="small">{preset}</ThemedText>
+              </Pressable>
+            ))}
+          </View>
+        </Animated.View>
+      )}
 
       <View style={styles.entryRow}>
         <TextInput
@@ -401,17 +548,17 @@ function ExerciseBlock({
           returnKeyType="done"
         />
         <Button
-          title="Log set"
+          title="Log"
           size="sm"
           onPress={handleLog}
           accessibilityLabel={`Log set for ${detail.exercise.name}`}
         />
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
-function SetRow({
+function SwipeableSetRow({
   set,
   unit,
   onToggle,
@@ -423,40 +570,73 @@ function SetRow({
   onRemove: () => void;
 }) {
   const theme = useTheme();
+  const swipeableRef = useRef<Swipeable>(null);
+
+  const renderRightActions = useCallback(() => (
+    <Pressable
+      onPress={() => {
+        swipeableRef.current?.close();
+        onRemove();
+      }}
+      style={[styles.swipeAction, { backgroundColor: theme.danger }]}
+      accessibilityLabel="Delete set">
+      <Icon name="close" size={20} color="#ffffff" />
+    </Pressable>
+  ), [onRemove, theme.danger]);
+
+  const renderLeftActions = useCallback(() => (
+    <Pressable
+      onPress={() => {
+        swipeableRef.current?.close();
+        onToggle();
+      }}
+      style={[styles.swipeAction, { backgroundColor: set.completed ? theme.textSecondary : theme.success }]}
+      accessibilityLabel={set.completed ? "Mark incomplete" : "Mark complete"}>
+      <Icon name="checkmark" size={20} color="#ffffff" />
+    </Pressable>
+  ), [onToggle, set.completed, theme.success, theme.textSecondary]);
+
   const repsLabel = set.reps != null ? `${set.reps} reps` : '— reps';
-  const weightLabel =
-    set.weight != null ? formatWeight(set.weight, unit) : `— ${unit}`;
+  const weightLabel = set.weight != null ? formatWeight(set.weight, unit) : `— ${unit}`;
 
   return (
-    <Pressable
-      onLongPress={onRemove}
-      accessibilityRole="button"
-      accessibilityLabel={`Set ${set.setNumber}: ${repsLabel} at ${weightLabel}${
-        set.isPr ? ', personal record' : ''
-      }. Long press to remove.`}
-      style={styles.setRow}>
-      <View style={[styles.setNumber, { backgroundColor: theme.backgroundSelected }]}>
-        <ThemedText type="smallBold">{set.setNumber}</ThemedText>
-      </View>
-      <ThemedText type="small" style={styles.setText}>
-        {repsLabel} · {weightLabel}
-      </ThemedText>
-      {set.isPr ? (
-        <Icon name="trophy" size={16} color={theme.pr} />
-      ) : null}
-      <IconButton
-        name="checkmark"
-        size={16}
-        diameter={32}
-        filled
-        color={set.completed ? theme.success : theme.textSecondary}
-        accessibilityLabel={
-          set.completed
-            ? `Mark set ${set.setNumber} incomplete`
-            : `Mark set ${set.setNumber} complete`
-        }
-        onPress={onToggle}
-      />
-    </Pressable>
+    <Swipeable
+      ref={swipeableRef}
+      renderRightActions={renderRightActions}
+      renderLeftActions={renderLeftActions}
+      overshootRight={false}
+      overshootLeft={false}>
+      <Animated.View 
+        layout={Layout.springify()}
+        style={[
+          styles.setRow,
+          set.completed && styles.setRowCompleted,
+        ]}>
+        <View style={[styles.setNumber, { backgroundColor: theme.backgroundSelected }]}>
+          <ThemedText type="smallBold">{set.setNumber}</ThemedText>
+        </View>
+        <ThemedText 
+          type="small" 
+          style={[styles.setText, set.completed && styles.setTextCompleted]}>
+          {repsLabel} · {weightLabel}
+        </ThemedText>
+        {set.isPr ? (
+          <Icon name="trophy" size={16} color={theme.pr} />
+        ) : null}
+        <IconButton
+          name="checkmark"
+          size={16}
+          diameter={32}
+          filled
+          color={set.completed ? theme.success : theme.textSecondary}
+          accessibilityLabel={
+            set.completed
+              ? `Mark set ${set.setNumber} incomplete`
+              : `Mark set ${set.setNumber} complete`
+          }
+          onPress={onToggle}
+        />
+      </Animated.View>
+    </Swipeable>
   );
 }

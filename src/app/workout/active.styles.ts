@@ -11,6 +11,24 @@ export const styles = StyleSheet.create({
     paddingBottom: Spacing.six,
     gap: Spacing.three,
   },
+  statsBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    marginHorizontal: Spacing.three,
+    marginBottom: Spacing.two,
+    paddingVertical: Spacing.two,
+    borderRadius: Spacing.two,
+  },
+  statItem: {
+    alignItems: 'center',
+    gap: Spacing.half,
+    flex: 1,
+  },
+  statDivider: {
+    width: 1,
+    height: 24,
+  },
   emptyBody: {
     paddingVertical: Spacing.five,
     alignItems: 'center',
@@ -68,6 +86,10 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.two,
+    paddingVertical: Spacing.one,
+  },
+  setRowCompleted: {
+    opacity: 0.7,
   },
   setNumber: {
     width: 28,
@@ -78,6 +100,49 @@ export const styles = StyleSheet.create({
   },
   setText: {
     flex: 1,
+  },
+  setTextCompleted: {
+    textDecorationLine: 'line-through',
+    opacity: 0.6,
+  },
+  swipeAction: {
+    width: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: Spacing.two,
+    marginHorizontal: Spacing.one,
+  },
+  quickActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.two,
+  },
+  quickActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one,
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.one,
+    borderRadius: Spacing.two,
+  },
+  presetsContainer: {
+    gap: Spacing.two,
+  },
+  presetRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    flexWrap: 'wrap',
+  },
+  presetLabel: {
+    minWidth: 60,
+  },
+  presetChip: {
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.one,
+    borderRadius: Spacing.one,
+    minWidth: 40,
+    alignItems: 'center',
   },
   entryRow: {
     flexDirection: 'row',
