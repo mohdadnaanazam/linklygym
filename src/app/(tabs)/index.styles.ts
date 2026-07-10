@@ -19,6 +19,19 @@ export const styles = StyleSheet.create({
     gap: Spacing.three,
     marginHorizontal: -Spacing.three,
   },
+  journeyToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.two,
+    padding: Spacing.three,
+    borderRadius: Spacing.three,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  journeyToggleText: {
+    flex: 1,
+    gap: Spacing.half,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

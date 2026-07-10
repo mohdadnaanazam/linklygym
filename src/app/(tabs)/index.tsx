@@ -4,9 +4,14 @@ import { useCallback, useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { NudgeKitCards, NudgeKitProvider } from 'nudgekit-react-native';
+import { NudgeKitCards, NudgeKitProvider, useNudgeKit } from 'nudgekit-react-native';
 
-import { NUDGEKIT_API_KEY, NUDGEKIT_USER_ID } from '@/api/linkly-config';
+import {
+  NUDGEKIT_API_KEY,
+  NUDGEKIT_BASE_URL,
+  NUDGEKIT_BUILDER_ID,
+  NUDGEKIT_USER_ID,
+} from '@/api/linkly-config';
 import { Spacing } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -290,19 +295,65 @@ export default function HomeScreen() {
 }
 
 function HomeCardsSection() {
-  if (!NUDGEKIT_API_KEY) {
+  const apiKey = NUDGEKIT_API_KEY;
+  const builderId = NUDGEKIT_BUILDER_ID;
+  const userId = NUDGEKIT_USER_ID;
+
+  if (!apiKey || !Number.isFinite(builderId)) {
     if (!__DEV__) return null;
     return (
       <ThemedText type="small" themeColor="danger">
-        Set EXPO_PUBLIC_NUDGEKIT_API_KEY to load home cards.
+        Set EXPO_PUBLIC_NUDGEKIT_API_KEY and EXPO_PUBLIC_NUDGEKIT_BUILDER_ID to
+        load home cards.
       </ThemedText>
     );
   }
 
   return (
-    <NudgeKitProvider buildId={1} apiKey={"lk_live_9c45b62153874ea78f6ec3076d46c84f"} userId={"demo_user"}>
+    <NudgeKitProvider
+      builderId={builderId}
+      apiKey={apiKey}
+      userId={userId}>
+      <JourneyUserToggle />
       <NudgeKitCards style={styles.homeCards} gap={Spacing.three} />
     </NudgeKitProvider>
+  );
+}
+
+function JourneyUserToggle() {
+  const theme = useTheme();
+  const { track, refresh } = useNudgeKit();
+  const [userType, setUserType] = useState<'new_user' | 'old_user'>('new_user');
+
+  const toggleUserType = useCallback(async () => {
+    const nextType = userType === 'new_user' ? 'old_user' : 'new_user';
+    setUserType(nextType);
+    // Both journey conditions must be updated; otherwise the old new_user
+    // property remains true and its higher-priority branch keeps winning.
+    await track(nextType, {
+      new_user: nextType,
+      old_user: nextType,
+    });
+    await refresh();
+  }, [refresh, track, userType]);
+
+  return (
+    <View style={styles.journeyToggle}>
+      <View style={styles.journeyToggleText}>
+        <ThemedText type="smallBold">Journey preview</ThemedText>
+        <ThemedText type="small" themeColor="textSecondary">
+          Showing {userType === 'new_user' ? 'new-user' : 'old-user'} experience
+        </ThemedText>
+      </View>
+      <Button
+        title={`Switch to ${userType === 'new_user' ? 'old' : 'new'} user`}
+        size="sm"
+        variant="secondary"
+        onPress={() => void toggleUserType()}
+        leading={<Icon name="chevron-right" size={16} color={theme.text} />}
+        accessibilityLabel="Toggle between new-user and old-user journey"
+      />
+    </View>
   );
 }
 
