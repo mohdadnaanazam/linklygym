@@ -253,7 +253,7 @@ export default function ActiveWorkoutScreen() {
               style={[styles.prBanner, { backgroundColor: theme.pr }]}
               accessibilityRole="alert"
               accessibilityLabel={`New personal record. ${prBanner}`}>
-              <Icon name="trophy" size={18} color="#00120a" />
+              <Icon name="trophy" size={18} color={theme.accentForeground} />
               <ThemedText type="smallBold" style={styles.prBannerText} numberOfLines={2}>
                 New PR! {prBanner}
               </ThemedText>
@@ -592,9 +592,9 @@ function SwipeableSetRow({
       }}
       style={[styles.swipeAction, { backgroundColor: set.completed ? theme.textSecondary : theme.success }]}
       accessibilityLabel={set.completed ? "Mark incomplete" : "Mark complete"}>
-      <Icon name="checkmark" size={20} color="#ffffff" />
+      <Icon name="checkmark" size={20} color={theme.accentForeground} />
     </Pressable>
-  ), [onToggle, set.completed, theme.success, theme.textSecondary]);
+  ), [onToggle, set.completed, theme.accentForeground, theme.success, theme.textSecondary]);
 
   const repsLabel = set.reps != null ? `${set.reps} reps` : '— reps';
   const weightLabel = set.weight != null ? formatWeight(set.weight, unit) : `— ${unit}`;

@@ -187,7 +187,7 @@ export default function HomeScreen() {
                   title="Start workout"
                   onPress={handleStartWorkout}
                   fullWidth
-                  leading={<Icon name="train" size={18} color="#ffffff" />}
+                  leading={<Icon name="train" size={18} color={theme.accentForeground} />}
                   accessibilityLabel={
                     data.hasActive
                       ? 'Resume your in-progress workout'
@@ -313,6 +313,7 @@ function HomeCardsSection() {
     <NudgeKitProvider
       builderId={builderId}
       apiKey={apiKey}
+      onAction={(e) => console.log(e, ".....")}
       userId={userId}>
       <JourneyUserToggle />
       <NudgeKitCards style={styles.homeCards} gap={Spacing.three} />
@@ -370,7 +371,7 @@ function ResumeBanner({ onResume }: { onResume: () => void }) {
         pressed && styles.pressed,
       ]}>
       <View style={styles.resumeIcon}>
-        <Icon name="timer" size={22} color="#ffffff" />
+        <Icon name="timer" size={22} color={theme.accentForeground} />
       </View>
       <View style={styles.resumeBody}>
         <ThemedText type="smallBold" style={styles.resumeText}>
@@ -380,7 +381,7 @@ function ResumeBanner({ onResume }: { onResume: () => void }) {
           Tap to resume where you left off
         </ThemedText>
       </View>
-      <Icon name="chevron-right" size={18} color="#ffffff" />
+      <Icon name="chevron-right" size={18} color={theme.accentForeground} />
     </Pressable>
   );
 }

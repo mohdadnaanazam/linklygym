@@ -20,8 +20,8 @@ export function EmptyState({ icon, title, message, actionLabel, onAction }: Empt
   return (
     <View style={styles.container} accessibilityRole="summary">
       {icon ? (
-        <View style={styles.icon}>
-          <Icon name={icon} size={40} color={theme.textSecondary} />
+        <View style={[styles.icon, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}>
+          <Icon name={icon} size={30} color={theme.accent} />
         </View>
       ) : null}
       <ThemedText type="subtitle" style={styles.title}>
@@ -51,6 +51,12 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginBottom: Spacing.two,
+    width: 68,
+    height: 68,
+    borderRadius: 22,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     fontSize: 20,
@@ -59,6 +65,7 @@ const styles = StyleSheet.create({
   },
   message: {
     textAlign: 'center',
+    maxWidth: 340,
   },
   action: {
     marginTop: Spacing.three,

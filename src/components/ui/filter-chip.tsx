@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export type FilterChipProps = {
@@ -42,7 +42,7 @@ export function FilterChip({
       ]}>
       <ThemedText
         type="small"
-        themeColor={selected ? 'text' : 'textSecondary'}
+        themeColor={selected ? 'accentForeground' : 'textSecondary'}
         style={[styles.label, selected && styles.selectedLabel]}
         numberOfLines={1}>
         {label}
@@ -63,9 +63,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.one,
-    paddingVertical: Spacing.one,
+    minHeight: 44,
+    paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
-    borderRadius: 999,
+    borderRadius: Radius.pill,
     borderWidth: StyleSheet.hairlineWidth,
   },
   disabled: {
@@ -78,7 +79,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   selectedLabel: {
-    color: '#ffffff',
+    color: '#10150A',
   },
   badge: {
     minWidth: 18,

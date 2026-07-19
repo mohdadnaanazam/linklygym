@@ -42,7 +42,8 @@ export function IconButton({
           width: diameter,
           height: diameter,
           borderRadius: diameter / 2,
-          backgroundColor: filled ? theme.backgroundElement : 'transparent',
+          backgroundColor: filled ? theme.surfaceElevated : 'transparent',
+          borderColor: filled ? theme.border : 'transparent',
         },
         disabled && styles.disabled,
         pressed && !disabled && styles.pressed,
@@ -57,12 +58,14 @@ const styles = StyleSheet.create({
   base: {
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
   },
   disabled: {
     opacity: 0.4,
   },
   pressed: {
-    opacity: 0.7,
+    opacity: 0.75,
+    transform: [{ scale: 0.96 }],
   },
 });
 

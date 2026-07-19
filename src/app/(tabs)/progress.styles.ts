@@ -8,7 +8,10 @@ export const styles = StyleSheet.create({
   },
   content: {
     padding: Spacing.three,
-    gap: Spacing.three,
+    gap: 20,
+    width: '100%',
+    maxWidth: 800,
+    alignSelf: 'center',
   },
   headerRow: {
     flexDirection: 'row',
@@ -27,6 +30,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.one,
     paddingVertical: Spacing.three,
+    minHeight: 126,
   },
   insightIcon: {
     width: 32,
@@ -39,8 +43,9 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   insightValue: {
-    fontSize: 24,
-    lineHeight: 28,
+    fontSize: 28,
+    lineHeight: 34,
+    fontWeight: '800',
   },
   card: {
     gap: Spacing.three,
@@ -106,7 +111,7 @@ export const styles = StyleSheet.create({
   muscleGroupBarContainer: {
     flex: 1,
     height: 8,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: '#20251F',
     borderRadius: 4,
     overflow: 'hidden',
   },

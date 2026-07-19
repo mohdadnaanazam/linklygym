@@ -1,6 +1,6 @@
 import { StyleSheet, View, type StyleProp, type ViewProps, type ViewStyle } from 'react-native';
 
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export type CardProps = ViewProps & {
@@ -12,7 +12,7 @@ export type CardProps = ViewProps & {
 export function Card({
   children,
   style,
-  borderRadius = Spacing.three,
+  borderRadius = Radius.lg,
   padding = Spacing.three,
   ...rest
 }: CardProps) {
@@ -22,7 +22,12 @@ export function Card({
     <View
       style={[
         styles.base,
-        { backgroundColor: theme.backgroundElement, borderRadius, padding },
+        {
+          backgroundColor: theme.surface,
+          borderColor: theme.border,
+          borderRadius,
+          padding,
+        },
         style,
       ]}
       {...rest}>
@@ -34,6 +39,7 @@ export function Card({
 const styles = StyleSheet.create({
   base: {
     overflow: 'hidden',
+    borderWidth: 1,
   },
 });
 

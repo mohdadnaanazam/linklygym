@@ -258,7 +258,7 @@ export default function ExercisesScreen() {
                   <Icon
                     name="filter"
                     size={18}
-                    color={activeFilterCount > 0 ? '#ffffff' : theme.text}
+                    color={activeFilterCount > 0 ? theme.accentForeground : theme.text}
                   />
                   {activeFilterCount > 0 ? (
                     <View style={[styles.badge, { backgroundColor: theme.background }]}>

@@ -11,6 +11,9 @@ export const styles = StyleSheet.create({
     paddingTop: Spacing.two,
     paddingBottom: Spacing.two,
     gap: Spacing.two,
+    width: '100%',
+    maxWidth: 800,
+    alignSelf: 'center',
   },
   titleRow: {
     flexDirection: 'row',
@@ -28,7 +31,7 @@ export const styles = StyleSheet.create({
   filterButton: {
     width: 44,
     height: 44,
-    borderRadius: Spacing.three,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -64,8 +67,10 @@ export const styles = StyleSheet.create({
   muscleChip: {
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
-    borderRadius: Spacing.four,
+    borderRadius: 999,
     borderWidth: 1,
+    minHeight: 44,
+    justifyContent: 'center',
   },
   muscleChipText: {
     fontWeight: '500',
@@ -110,6 +115,9 @@ export const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: BottomTabInset + Spacing.four,
+    width: '100%',
+    maxWidth: 800,
+    alignSelf: 'center',
   },
   listContentEmpty: {
     flexGrow: 1,

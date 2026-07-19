@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -52,8 +52,10 @@ export function Button({
           : 'transparent';
 
   const textColor =
-    variant === 'primary' || variant === 'danger'
-      ? '#ffffff'
+    variant === 'primary'
+      ? theme.accentForeground
+      : variant === 'danger'
+      ? '#170303'
       : variant === 'ghost'
         ? theme.accent
         : theme.text;
@@ -70,7 +72,11 @@ export function Button({
       style={({ pressed }) => [
         styles.base,
         sizing,
-        { backgroundColor },
+        {
+          backgroundColor,
+          borderColor:
+            variant === 'secondary' ? theme.border : 'transparent',
+        },
         fullWidth && styles.fullWidth,
         isDisabled && styles.disabled,
         pressed && !isDisabled && styles.pressed,
@@ -94,17 +100,18 @@ export function Button({
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.md,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   sm: {
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
-    minHeight: 36,
+    minHeight: 44,
   },
   md: {
-    paddingVertical: Spacing.three,
+    paddingVertical: 14,
     paddingHorizontal: Spacing.four,
     minHeight: 48,
   },
@@ -115,7 +122,8 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   pressed: {
-    opacity: 0.8,
+    opacity: 0.86,
+    transform: [{ scale: 0.985 }],
   },
   content: {
     flexDirection: 'row',
@@ -123,7 +131,8 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   label: {
-    fontWeight: '600',
+    fontWeight: '800',
+    letterSpacing: 0.1,
   },
 });
 

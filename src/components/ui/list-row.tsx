@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'rea
 import { ThemedText } from '@/components/themed-text';
 import { Icon } from '@/components/ui/icon';
 import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 export type ListRowProps = {
   title: string;
@@ -28,6 +29,7 @@ export function ListRow({
   style,
 }: ListRowProps) {
   const interactive = !!onPress && !disabled;
+  const theme = useTheme();
 
   return (
     <Pressable
@@ -38,6 +40,7 @@ export function ListRow({
       accessibilityState={{ disabled }}
       style={({ pressed }) => [
         styles.container,
+        { borderBottomColor: theme.border },
         pressed && interactive && styles.pressed,
         disabled && styles.disabled,
         style,
@@ -54,7 +57,7 @@ export function ListRow({
         ) : null}
       </View>
       {trailing ? <View style={styles.trailing}>{trailing}</View> : null}
-      {chevron ? <Icon name="chevron-right" size={16} /> : null}
+      {chevron ? <Icon name="chevron-right" size={16} color={theme.textSecondary} /> : null}
     </Pressable>
   );
 }
@@ -64,8 +67,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.three,
+    minHeight: 62,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   pressed: {
     opacity: 0.7,

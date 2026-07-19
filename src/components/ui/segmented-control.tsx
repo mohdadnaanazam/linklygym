@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export type SegmentedOption<T extends string> = {
@@ -27,7 +27,11 @@ export function SegmentedControl<T extends string>({
   return (
     <View
       accessibilityRole="tablist"
-      style={[styles.container, { backgroundColor: theme.backgroundElement }, style]}>
+      style={[
+        styles.container,
+        { backgroundColor: theme.surface, borderColor: theme.border },
+        style,
+      ]}>
       {options.map((option) => {
         const selected = option.value === value;
         return (
@@ -39,12 +43,12 @@ export function SegmentedControl<T extends string>({
             accessibilityState={{ selected }}
             style={({ pressed }) => [
               styles.segment,
-              selected && { backgroundColor: theme.backgroundSelected },
+              selected && { backgroundColor: theme.accent },
               pressed && !selected && styles.pressed,
             ]}>
             <ThemedText
               type="small"
-              themeColor={selected ? 'text' : 'textSecondary'}
+              themeColor={selected ? 'accentForeground' : 'textSecondary'}
               numberOfLines={1}
               style={styles.label}>
               {option.label}
@@ -59,14 +63,16 @@ export function SegmentedControl<T extends string>({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    borderRadius: Spacing.two,
+    borderRadius: Radius.md,
     padding: Spacing.half,
+    borderWidth: 1,
   },
   segment: {
     flex: 1,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.two,
-    borderRadius: Spacing.two - 1,
+    borderRadius: Radius.sm,
+    minHeight: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },

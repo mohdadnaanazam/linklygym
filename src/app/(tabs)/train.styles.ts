@@ -14,6 +14,9 @@ export const styles = StyleSheet.create({
   content: {
     paddingBottom: BottomTabInset + Spacing.four,
     gap: Spacing.four,
+    width: '100%',
+    maxWidth: 800,
+    alignSelf: 'center',
   },
   contentEmpty: {
     flexGrow: 1,
@@ -40,9 +43,11 @@ export const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   templateCard: {
-    width: 100,
+    width: 116,
+    minHeight: 138,
     padding: Spacing.three,
-    borderRadius: Spacing.three,
+    borderRadius: 20,
+    borderWidth: 1,
     alignItems: 'center',
     gap: Spacing.two,
   },
@@ -69,7 +74,9 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.three,
     padding: Spacing.three,
-    borderRadius: Spacing.three,
+    borderRadius: 20,
+    borderWidth: 1,
+    minHeight: 100,
   },
   routineCardContent: {
     flex: 1,

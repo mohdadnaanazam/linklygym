@@ -158,7 +158,7 @@ export default function TrainScreen() {
                 variant="primary"
                 onPress={handleStartEmpty}
                 fullWidth
-                leading={<Icon name="plus" size={18} color="#ffffff" />}
+                leading={<Icon name="plus" size={18} color={theme.accentForeground} />}
                 accessibilityLabel="Start an empty workout"
               />
             </View>
@@ -271,7 +271,7 @@ function QuickTemplateCard({
       accessibilityLabel={`Create ${template.name} workout template`}
       style={({ pressed }) => [
         styles.templateCard,
-        { backgroundColor: theme.backgroundElement },
+        { backgroundColor: theme.surface, borderColor: theme.border },
         pressed && styles.pressed,
       ]}>
       <View style={[styles.templateIcon, { backgroundColor: template.color + '20' }]}>
@@ -303,17 +303,18 @@ function EnhancedRoutineCard({
   onStart: () => void;
 }) {
   const theme = useTheme();
+  const [renderedAt] = useState(() => Date.now());
   const countLabel = `${exerciseCount} ${exerciseCount === 1 ? 'exercise' : 'exercises'}`;
   
   const lastUsedLabel = useMemo(() => {
     if (!lastUsed) return null;
-    const days = Math.floor((Date.now() - lastUsed) / (1000 * 60 * 60 * 24));
+    const days = Math.floor((renderedAt - lastUsed) / (1000 * 60 * 60 * 24));
     if (days === 0) return 'Today';
     if (days === 1) return 'Yesterday';
     if (days < 7) return `${days} days ago`;
     if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
     return `${Math.floor(days / 30)} months ago`;
-  }, [lastUsed]);
+  }, [lastUsed, renderedAt]);
 
   const exercisePreview = useMemo(() => {
     return exercises.slice(0, 3).map(e => e.name).join(' · ');
@@ -326,7 +327,7 @@ function EnhancedRoutineCard({
       accessibilityLabel={`Edit routine ${routine.name}`}
       style={({ pressed }) => [
         styles.routineCard,
-        { backgroundColor: theme.backgroundElement },
+        { backgroundColor: theme.surface, borderColor: theme.border },
         pressed && styles.pressed,
       ]}>
       <View style={styles.routineCardContent}>

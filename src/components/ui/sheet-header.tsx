@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 export type SheetHeaderProps = {
   title: string;
@@ -11,8 +12,9 @@ export type SheetHeaderProps = {
 };
 
 export function SheetHeader({ title, subtitle, left, right }: SheetHeaderProps) {
+  const theme = useTheme();
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { borderBottomColor: theme.border }]}>
       <View style={styles.side}>{left}</View>
       <View style={styles.center} accessibilityRole="header">
         <ThemedText type="smallBold" numberOfLines={1}>
@@ -36,6 +38,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
     gap: Spacing.two,
+    minHeight: 64,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   side: {
     minWidth: 44,

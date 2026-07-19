@@ -10,7 +10,10 @@ export const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingTop: Spacing.two,
     paddingBottom: BottomTabInset + Spacing.four,
-    gap: Spacing.four,
+    gap: 20,
+    width: '100%',
+    maxWidth: 800,
+    alignSelf: 'center',
   },
   contentEmpty: {
     flexGrow: 1,
@@ -56,7 +59,8 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.three,
     padding: Spacing.three,
-    borderRadius: Spacing.three,
+    borderRadius: 22,
+    minHeight: 82,
   },
   resumeIcon: {
     width: 40,
@@ -64,17 +68,18 @@ export const styles = StyleSheet.create({
     borderRadius: Spacing.two,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(8,10,9,0.12)',
   },
   resumeBody: {
     flex: 1,
     gap: 2,
   },
   resumeText: {
-    color: '#ffffff',
+    color: '#10150A',
+    fontSize: 16,
   },
   resumeSubtext: {
-    color: 'rgba(255,255,255,0.85)',
+    color: 'rgba(16,21,10,0.7)',
   },
   statsRow: {
     flexDirection: 'row',
@@ -83,6 +88,8 @@ export const styles = StyleSheet.create({
   statCard: {
     flex: 1,
     gap: Spacing.one,
+    minHeight: 132,
+    justifyContent: 'space-between',
   },
   statValueRow: {
     flexDirection: 'row',
@@ -90,8 +97,9 @@ export const styles = StyleSheet.create({
     gap: Spacing.one,
   },
   statValue: {
-    fontSize: 28,
-    lineHeight: 34,
+    fontSize: 32,
+    lineHeight: 38,
+    fontWeight: '800',
   },
   statUnit: {
     marginBottom: 2,

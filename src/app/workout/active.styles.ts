@@ -10,6 +10,9 @@ export const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingBottom: Spacing.six,
     gap: Spacing.three,
+    width: '100%',
+    maxWidth: 800,
+    alignSelf: 'center',
   },
   statsBar: {
     flexDirection: 'row',
@@ -18,7 +21,10 @@ export const styles = StyleSheet.create({
     marginHorizontal: Spacing.three,
     marginBottom: Spacing.two,
     paddingVertical: Spacing.two,
-    borderRadius: Spacing.two,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#2A3028',
+    minHeight: 66,
   },
   statItem: {
     alignItems: 'center',
@@ -51,7 +57,9 @@ export const styles = StyleSheet.create({
     color: '#00120a',
   },
   block: {
-    borderRadius: Spacing.three,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: '#2A3028',
     padding: Spacing.three,
     gap: Spacing.three,
   },
@@ -77,7 +85,7 @@ export const styles = StyleSheet.create({
     gap: Spacing.half,
   },
   blockTitle: {
-    fontWeight: '600',
+    fontWeight: '800',
   },
   setList: {
     gap: Spacing.two,
@@ -122,8 +130,9 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.one,
     paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.one,
-    borderRadius: Spacing.two,
+    paddingVertical: Spacing.two,
+    borderRadius: 12,
+    minHeight: 44,
   },
   presetsContainer: {
     gap: Spacing.two,
@@ -139,9 +148,10 @@ export const styles = StyleSheet.create({
   },
   presetChip: {
     paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.one,
-    borderRadius: Spacing.one,
-    minWidth: 40,
+    paddingVertical: Spacing.two,
+    borderRadius: 10,
+    minWidth: 44,
+    minHeight: 44,
     alignItems: 'center',
   },
   entryRow: {
@@ -152,7 +162,9 @@ export const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: 44,
-    borderRadius: Spacing.two,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#2A3028',
     paddingHorizontal: Spacing.three,
     fontSize: 15,
   },

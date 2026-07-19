@@ -2,7 +2,7 @@ import { BlurView } from 'expo-blur';
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { Spacing } from '@/constants/theme';
+import { Radius } from '@/constants/theme';
 
 export type GlassSurfaceProps = {
   children?: React.ReactNode;
@@ -17,7 +17,7 @@ const LIQUID_GLASS = isLiquidGlassAvailable();
 export function GlassSurface({
   children,
   style,
-  borderRadius = Spacing.three,
+  borderRadius = Radius.lg,
   intensity = 40,
   tint = 'dark',
 }: GlassSurfaceProps) {
@@ -45,10 +45,10 @@ const styles = StyleSheet.create({
   fallback: {
     overflow: 'hidden',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: 'rgba(199, 243, 107, 0.14)',
   },
   overlay: {
-    backgroundColor: 'rgba(20, 20, 22, 0.55)',
+    backgroundColor: 'rgba(12, 15, 12, 0.68)',
   },
 });
 

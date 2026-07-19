@@ -161,6 +161,7 @@ export default function ProgressScreen() {
   const theme = useTheme();
   const router = useRouter();
   const unit = useMemo<WeightUnit>(() => settingsRepo.get().weightUnit, []);
+  const [insightNow] = useState(() => Date.now());
 
   const [range, setRange] = useState<RangeKey>('12W');
   const [metric, setMetric] = useState<MetricKey>('top');
@@ -287,8 +288,8 @@ export default function ProgressScreen() {
       : 0;
 
     // Workouts per week
-    const days = start ? (Date.now() - start) / DAY_MS : 
-      rangeWorkouts.length > 0 ? (Date.now() - rangeWorkouts[rangeWorkouts.length - 1].startedAt) / DAY_MS : 0;
+    const days = start ? (insightNow - start) / DAY_MS :
+      rangeWorkouts.length > 0 ? (insightNow - rangeWorkouts[rangeWorkouts.length - 1].startedAt) / DAY_MS : 0;
     const weeks = Math.max(1, days / 7);
     const workoutsPerWeek = Math.round((totalWorkouts / weeks) * 10) / 10;
 
@@ -315,7 +316,7 @@ export default function ProgressScreen() {
         subtitle: unit,
       },
     ];
-  }, [allWorkouts, start, unit, theme]);
+  }, [allWorkouts, insightNow, start, unit, theme]);
 
   const volumeSummary =
     volumeBars.length > 0
